@@ -4,7 +4,7 @@ import "./index.css";
 
 function Square(props) {
   return (
-    <button className="square" onClick={props.onClick}>
+    <button className={props.squareClass} onClick={props.onClick}>
       {props.value}
     </button>
   );
@@ -12,8 +12,11 @@ function Square(props) {
 
 class Board extends React.Component {
   renderSquare(i) {
+    const cellLastMove = this.props.cellLastMove;
+    const highlighted = cellLastMove === i ? "highlight_square" : "square";
     return (
       <Square
+        squareClass={highlighted}
         value={this.props.squares[i]}
         onClick={() => this.props.onClick(i)}
       />
@@ -50,10 +53,11 @@ class Game extends React.Component {
       history: [
         {
           squares: Array(9).fill(null),
-          lastMovePosition: Array(2).fill(null),
+          rowColLastMove: Array(2).fill(null),
         },
       ],
       stepNumber: 0,
+      cellLastMove: null,
       xIsNext: true,
     };
   }
@@ -62,7 +66,7 @@ class Game extends React.Component {
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length - 1];
     const squares = current.squares.slice();
-    const lastMovePosition = calculateLocation(i);
+    const rowColLastMove = calculateRowColLastMove(i);
     if (calculateWinner(squares) || squares[i]) {
       return;
     }
@@ -71,17 +75,19 @@ class Game extends React.Component {
       history: history.concat([
         {
           squares: squares,
-          lastMovePosition: lastMovePosition,
+          rowColLastMove: rowColLastMove,
         },
       ]),
       stepNumber: history.length,
+      cellLastMove: i,
       xIsNext: !this.state.xIsNext,
     });
   }
 
-  jumpTo(step) {
+  jumpTo(step, rowCol) {
     this.setState({
       stepNumber: step,
+      cellLastMove: calculateCellLastMove(rowCol),
       xIsNext: step % 2 === 0,
     });
   }
@@ -93,13 +99,12 @@ class Game extends React.Component {
 
     const moves = history.map((step, move) => {
       const desc = move ? "Go to move #" + move : "Go to game start";
-      const lastMovePosition = move
-        ? history[move].lastMovePosition.toString()
-        : null;
+      const rowCol = history[move].rowColLastMove.toString();
+      const rowColLastMove = move ? rowCol : null;
       return (
         <li key={move}>
-          <button onClick={() => this.jumpTo(move)}>
-            {desc} ({lastMovePosition})
+          <button onClick={() => this.jumpTo(move, rowCol)}>
+            {desc} ({rowColLastMove})
           </button>
         </li>
       );
@@ -117,6 +122,7 @@ class Game extends React.Component {
         <div className="game-board">
           <Board
             squares={current.squares}
+            cellLastMove={this.state.cellLastMove}
             onClick={(i) => this.handleClick(i)}
           />
         </div>
@@ -129,8 +135,33 @@ class Game extends React.Component {
   }
 }
 
-function calculateLocation(i) {
-  switch (i) {
+function calculateCellLastMove(rowCol) {
+  switch (rowCol) {
+    case "1,1":
+      return 0;
+    case "1,2":
+      return 1;
+    case "1,3":
+      return 2;
+    case "2,1":
+      return 3;
+    case "2,2":
+      return 4;
+    case "2,3":
+      return 5;
+    case "3,1":
+      return 6;
+    case "3,2":
+      return 7;
+    case "3,3":
+      return 8;
+    default:
+      return null;
+  }
+}
+
+function calculateRowColLastMove(cell) {
+  switch (cell) {
     case 0:
       return [1, 1];
     case 1:
