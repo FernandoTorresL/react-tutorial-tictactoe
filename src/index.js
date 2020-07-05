@@ -50,6 +50,7 @@ class Game extends React.Component {
       history: [
         {
           squares: Array(9).fill(null),
+          lastMovePosition: Array(2).fill(null),
         },
       ],
       stepNumber: 0,
@@ -61,6 +62,7 @@ class Game extends React.Component {
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length - 1];
     const squares = current.squares.slice();
+    const lastMovePosition = calculateLocation(i);
     if (calculateWinner(squares) || squares[i]) {
       return;
     }
@@ -69,6 +71,7 @@ class Game extends React.Component {
       history: history.concat([
         {
           squares: squares,
+          lastMovePosition: lastMovePosition,
         },
       ]),
       stepNumber: history.length,
@@ -90,9 +93,14 @@ class Game extends React.Component {
 
     const moves = history.map((step, move) => {
       const desc = move ? "Go to move #" + move : "Go to game start";
+      const lastMovePosition = move
+        ? history[move].lastMovePosition.toString()
+        : null;
       return (
         <li key={move}>
-          <button onClick={() => this.jumpTo(move)}>{desc}</button>
+          <button onClick={() => this.jumpTo(move)}>
+            {desc} ({lastMovePosition})
+          </button>
         </li>
       );
     });
@@ -118,6 +126,31 @@ class Game extends React.Component {
         </div>
       </div>
     );
+  }
+}
+
+function calculateLocation(i) {
+  switch (i) {
+    case 0:
+      return [1, 1];
+    case 1:
+      return [1, 2];
+    case 2:
+      return [1, 3];
+    case 3:
+      return [2, 1];
+    case 4:
+      return [2, 2];
+    case 5:
+      return [2, 3];
+    case 6:
+      return [3, 1];
+    case 7:
+      return [3, 2];
+    case 8:
+      return [3, 3];
+    default:
+      return Array(2).fill(null);
   }
 }
 
